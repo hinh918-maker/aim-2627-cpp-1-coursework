@@ -18,7 +18,32 @@ namespace aim::q6 {
 struct Target { int id; int x; int y; int hp; bool visible; };
 
 // BEGIN IMPLEMENTATION
-int select_target(const std::vector<Target>& targets, int max_range) { throw std::runtime_error("TODO"); }
+// aim-cpp-cw-known
+int select_target(const std::vector<Target>& targets, int max_range) {
+    if (max_range<0){
+        return -1;
+    }
+    long long max_d2=static_cast<long long>(max_range)*max_range;
+    int best_id=-1;
+    long long best_hp=0;
+    long long best_d2=0;
+    for(const auto& t:targets){
+        if(!t.visible||t.hp<=0){
+            continue;
+        }
+        long long d2=static_cast<long long>(t.x)*t.x+static_cast<long long>(t.y)*t.y;
+        if(d2>max_d2){
+            continue;
+        }
+        if (best_id==-1||t.hp<best_hp
+            ||(t.hp==best_hp&&(d2<best_d2||(d2==best_d2&&t.id<best_id)))){
+            best_id=t.id;
+            best_hp=t.hp;
+            best_d2=d2;
+        }
+    }
+    return best_id;
+}
 // END IMPLEMENTATION
 }
 

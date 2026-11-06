@@ -15,10 +15,38 @@
 
 // Assessment 01 Q8; see 题面.pdf.
 namespace aim::q8 {
+struct Telemetry { int id; int hp; };
 struct Summary { int valid; int duplicate; int invalid; long long total_hp; std::vector<int> ids; };
 
 // BEGIN IMPLEMENTATION
-Summary summarize(const std::vector<std::string>& lines) { throw std::runtime_error("TODO"); }
+Summary summarize(const std::vector<Telemetry>& frames) {
+    int valid=0;
+    int duplicate=0;
+    int invalid=0;
+    long long total_hp=0;
+    std::array<bool,10000> seen={};
+    for(const auto& f:frames){
+        if(f.id<0||f.id>9999||f.hp<-1000||f.hp>1000){
+            ++invalid;
+            continue;
+        }
+        if(seen[f.id]){
+            ++duplicate;
+            continue;
+        }
+        seen[f.id]=true;
+        ++valid;
+        total_hp+=std::clamp(f.hp,0,100);
+    }
+    std::vector<int>ids;
+    ids.reserve(valid);
+    for(int i=0;i<10000;++i){
+        if(seen[i]){
+            ids.push_back(i);
+        }
+    }
+    return {valid,duplicate,invalid,total_hp,ids};
+}
 // END IMPLEMENTATION
 }
 
@@ -29,8 +57,8 @@ Summary summarize(const std::vector<std::string>& lines) { throw std::runtime_er
 using namespace aim::q8;
 int main() {
     try {
-        { aim::q8::Summary r=summarize({"2 200","1 -5","2 10","bad"}); CHECK(r.valid==2 && r.duplicate==1 && r.invalid==1 && r.total_hp==100 && (r.ids==std::vector<int>{1,2})); }
-        { aim::q8::Summary r=summarize({}); CHECK(r.valid==0 && r.total_hp==0 && r.ids.empty()); }
+        { aim::q8::Summary r=summarize({{2,200},{1,-5},{2,10},{-1,30}}); CHECK(r.valid==2 && r.duplicate==1 && r.invalid==1 && r.total_hp==100 && (r.ids==std::vector<int>{1,2})); }
+        { aim::q8::Summary r=summarize({{1,-1001},{1,30},{1,1001}}); CHECK(r.valid==1 && r.duplicate==0 && r.invalid==2 && r.total_hp==30 && (r.ids==std::vector<int>{1})); }
         std::cout << "PUBLIC 2/2\n";
     } catch(const std::exception& e) {
         std::cerr << e.what() << "\n";

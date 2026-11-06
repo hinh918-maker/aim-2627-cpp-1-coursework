@@ -15,10 +15,52 @@
 
 // Assessment 01 Q2; see 题面.pdf.
 namespace aim::q2 {
-struct Damage { int id; int value; };
+struct LabelEdit { std::string from; std::string to; };
 
 // BEGIN IMPLEMENTATION
-std::vector<Damage> clean(const std::vector<std::string>& lines) { throw std::runtime_error("TODO"); }
+// aim-cpp-cw-known
+std::string edit_labels(std::string labels, const std::vector<LabelEdit>& edits) {
+    std::vector<std::string>tokens;
+    if(!labels.empty()){
+        std::size_t start=0;
+        while(start<labels.size()){
+            std::size_t pos=labels.find(',',start);
+            if(pos==std::string::npos){
+                tokens.push_back(labels.substr(start));
+                break;
+            }
+            tokens.push_back(labels.substr(start,pos-start));
+            start=pos+1;
+        }
+    }
+    for(const LabelEdit& e:edits){
+       if(e.from.empty()&&e.to.empty()){
+           continue;
+       }
+       if(e.from.empty()){
+           tokens.push_back(e.to);
+           continue;
+       }
+       for(std::vector<std::string>::iterator it=tokens.begin();it!=tokens.end();++it){
+           if(*it==e.from){
+               if(e.to.empty()){
+                   tokens.erase(it);
+               }else{
+                   *it=e.to;
+               }
+               break;
+            }
+        }
+    }
+    std::string res;
+    for(std::size_t i=0;i<tokens.size();++i){
+        if(i>0){
+            res+=",";
+        }
+        res+=tokens[i];
+    }
+    return res;
+}
 // END IMPLEMENTATION
 }
 
@@ -29,8 +71,8 @@ std::vector<Damage> clean(const std::vector<std::string>& lines) { throw std::ru
 using namespace aim::q2;
 int main() {
     try {
-        { std::vector<aim::q2::Damage> r=clean({"2 5","bad","2 9","1 3"}); CHECK(r.size()==2 && r[0].id==2 && r[0].value==5 && r[1].id==1); }
-        { CHECK(clean({}).empty()); }
+        { CHECK(edit_labels("cam,imu,radar",{{"imu","gyro"},{"cam",""},{"","lidar"}})=="gyro,radar,lidar"); }
+        { CHECK(edit_labels("cam,cam2,cam",{{"cam","camera"},{"cam",""}})=="camera,cam2"); }
         std::cout << "PUBLIC 2/2\n";
     } catch(const std::exception& e) {
         std::cerr << e.what() << "\n";
